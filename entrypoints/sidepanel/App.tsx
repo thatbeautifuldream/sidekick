@@ -1,53 +1,132 @@
+import {
+    WebPreview,
+    WebPreviewNavigation,
+    WebPreviewNavigationButton,
+    WebPreviewUrl,
+    WebPreviewBody,
+} from "@/components/web-preview";
+import { ArrowLeft, ArrowRight, RotateCcw, Home } from "lucide-react";
 import { useState } from "react";
-import reactLogo from "@/assets/react.svg";
-import wxtLogo from "/wxt.svg";
-import { Button } from "@/components/ui/button";
 
 function App() {
-    const [count, setCount] = useState(0);
+    const [currentUrl, setCurrentUrl] = useState("https://www.google.com");
+    const [inputUrl, setInputUrl] = useState("https://www.google.com");
+    const [history, setHistory] = useState<string[]>(["https://www.google.com"]);
+    const [historyIndex, setHistoryIndex] = useState(0);
+
+    const handleUrlChange = (url: string) => {
+        setCurrentUrl(url);
+        // Add to history if it's a new URL
+        if (url !== history[historyIndex]) {
+            const newHistory = [...history.slice(0, historyIndex + 1), url];
+            setHistory(newHistory);
+            setHistoryIndex(newHistory.length - 1);
+        }
+    };
+
+    const handleBack = () => {
+        if (historyIndex > 0) {
+            const newIndex = historyIndex - 1;
+            setHistoryIndex(newIndex);
+            const url = history[newIndex];
+            setCurrentUrl(url);
+            setInputUrl(url);
+        }
+    };
+
+    const handleForward = () => {
+        if (historyIndex < history.length - 1) {
+            const newIndex = historyIndex + 1;
+            setHistoryIndex(newIndex);
+            const url = history[newIndex];
+            setCurrentUrl(url);
+            setInputUrl(url);
+        }
+    };
+
+    const handleRefresh = () => {
+        // Force refresh by reloading the iframe
+        const iframe = document.querySelector('iframe');
+        if (iframe) {
+            const currentSrc = iframe.src;
+            iframe.src = '';
+            iframe.src = currentSrc;
+        }
+    };
+
+    const handleHome = () => {
+        const homeUrl = "https://www.google.com";
+        setInputUrl(homeUrl);
+        setCurrentUrl(homeUrl);
+        handleUrlChange(homeUrl);
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputUrl(e.target.value);
+    };
+
+    const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            let url = inputUrl.trim();
+            // Add protocol if missing
+            if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+                setInputUrl(url);
+            }
+            setCurrentUrl(url);
+            handleUrlChange(url);
+        }
+    };
 
     return (
-        <div className="min-h-screen p-6 space-y-6 bg-white">
-            <div className="flex justify-center items-center space-x-4">
-                <a href="https://wxt.dev" target="_blank" rel="noopener noreferrer">
-                    <img src={wxtLogo} className="h-8 w-auto" alt="WXT logo" />
-                </a>
-                <a href="https://react.dev" target="_blank" rel="noopener noreferrer">
-                    <img src={reactLogo} className="h-8 w-auto" alt="React logo" />
-                </a>
-            </div>
+        <div className="h-screen w-full">
+            <WebPreview
+                defaultUrl={currentUrl}
+                onUrlChange={handleUrlChange}
+                className="h-full"
+            >
+                <WebPreviewNavigation>
+                    <WebPreviewNavigationButton
+                        onClick={handleBack}
+                        disabled={historyIndex <= 0}
+                        tooltip="Go back"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                    </WebPreviewNavigationButton>
 
-            <h1 className="text-2xl font-semibold text-center text-gray-800">
-                WXT + React Sidebar
-            </h1>
+                    <WebPreviewNavigationButton
+                        onClick={handleForward}
+                        disabled={historyIndex >= history.length - 1}
+                        tooltip="Go forward"
+                    >
+                        <ArrowRight className="h-4 w-4" />
+                    </WebPreviewNavigationButton>
 
-            <div className="bg-gray-100 p-6 rounded-md shadow-inner flex flex-col items-center space-y-4">
-                <Button onClick={() => setCount((count) => count + 1)}>
-                    Count is {count}
-                </Button>
-                <p className="text-sm text-gray-600 text-center">
-                    Edit <code>entrypoints/sidepanel/App.tsx</code> and save to test HMR
-                </p>
-            </div>
+                    <WebPreviewNavigationButton
+                        onClick={handleRefresh}
+                        tooltip="Refresh page"
+                    >
+                        <RotateCcw className="h-4 w-4" />
+                    </WebPreviewNavigationButton>
 
-            <div className="space-y-4">
-                <h2 className="text-lg font-medium text-gray-700">Sidebar Features</h2>
-                <p className="text-sm text-gray-600">
-                    This sidebar panel provides a persistent interface that stays open alongside your browsing.
-                    Perfect for tools, notes, or any functionality you want quick access to.
-                </p>
-                <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
-                    <h3 className="text-sm font-medium text-blue-800 mb-2">How to Access</h3>
-                    <p className="text-sm text-blue-700">
-                        Click the extension icon in your browser toolbar to open this sidebar.
-                        The sidebar will stay open as you browse, providing persistent access to your tools.
-                    </p>
-                </div>
-            </div>
+                    <WebPreviewNavigationButton
+                        onClick={handleHome}
+                        tooltip="Go to home page"
+                    >
+                        <Home className="h-4 w-4" />
+                    </WebPreviewNavigationButton>
 
-            <p className="text-xs text-center text-gray-500">
-                Click on the WXT and React logos to learn more
-            </p>
+                    <WebPreviewUrl
+                        value={inputUrl}
+                        onChange={handleInputChange}
+                        onKeyDown={handleInputKeyPress}
+                        placeholder="Enter URL or search..."
+                    />
+                </WebPreviewNavigation>
+
+                <WebPreviewBody src={currentUrl} />
+
+            </WebPreview>
         </div>
     );
 }
