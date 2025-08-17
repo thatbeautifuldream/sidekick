@@ -9,9 +9,9 @@ import { ArrowLeft, ArrowRight, RotateCcw, Home } from "lucide-react";
 import { useState } from "react";
 
 function App() {
-    const [currentUrl, setCurrentUrl] = useState("https://www.google.com");
-    const [inputUrl, setInputUrl] = useState("https://www.google.com");
-    const [history, setHistory] = useState<string[]>(["https://www.google.com"]);
+    const [currentUrl, setCurrentUrl] = useState("https://jsonvisualiser.com");
+    const [inputUrl, setInputUrl] = useState("https://jsonvisualiser.com");
+    const [history, setHistory] = useState<string[]>(["https://jsonvisualiser.com"]);
     const [historyIndex, setHistoryIndex] = useState(0);
 
     const handleUrlChange = (url: string) => {
@@ -55,7 +55,7 @@ function App() {
     };
 
     const handleHome = () => {
-        const homeUrl = "https://www.google.com";
+        const homeUrl = "https://jsonvisualiser.com";
         setInputUrl(homeUrl);
         setCurrentUrl(homeUrl);
         handleUrlChange(homeUrl);
